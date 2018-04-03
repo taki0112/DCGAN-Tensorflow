@@ -14,7 +14,7 @@ SImple Tensorflow implementation of "Deep Convolutional Generative Adversarial N
 > python main.py --dataset celebA
 ```
 
-## Results (epoch = 20, lr=0.0002, batch_size = 64)
+## Results (epoch = 20, lr = 0.0002, batch_size = 64, z_dim = 100)
 ### mnist
 ![mnist](./assests/mnist.png)
 ![mnist_loss](./assests/mnist_loss.png)
