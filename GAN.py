@@ -18,7 +18,7 @@ class GAN(object):
         self.log_dir = args.log_dir
 
         self.epoch = args.epoch
-        self.batch_size = args.batch_size
+        self.batch_size = args.batch_siz
         self.print_freq = args.print_freq
         self.z_dim = args.z_dim  # dimension of noise-vector
 
@@ -50,16 +50,26 @@ class GAN(object):
 
     def discriminator(self, x, is_training=True, reuse=False):
         with tf.variable_scope("discriminator", reuse=reuse):
+
             ch = 64
-            for i in range(5) :
-                # ch : 64 -> 128 -> 256 -> 512 -> 1024
-                # size : 32 -> 16 -> 8 -> 4 -> 2
-                x = conv(x, channels=ch, kernel=5, stride=2, pad=2, scope='conv_'+str(i))
+            x = conv(x, channels=ch, kernel=5, stride=2, pad=2, scope='conv_0')
+            x = lrelu(x)
+
+            for i in range(1, 5):
+
+                # ch : 128 -> 256 -> 512 -> 1024
+                # size : 16 -> 8 -> 4 -> 2
+
+                x = conv(x, channels=ch*2, kernel=5, stride=2, pad=2, scope='conv_'+str(i))
+
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
+
                 x = lrelu(x)
+
                 ch = ch * 2
 
             # [bs, 2, 2, 1024]
+
             x = flatten(x)
             x = fully_conneted(x, 1)
 
@@ -67,20 +77,21 @@ class GAN(object):
 
     def generator(self, z, is_training=True, reuse=False):
         with tf.variable_scope("generator", reuse=reuse):
-            ch = 512
-            x = fully_conneted(z, 1024)
-            x = relu(x)
-            x = tf.reshape(x, [-1, 1, 1, 1024])
+            ch = 1024
+            x = fully_conneted(z, ch)
 
-            for i in range(5) :
+            x = relu(x)
+            x = tf.reshape(x, [-1, 1, 1, ch])
+
+            for i in range(4):
                 # ch : 512 -> 256 -> 128 -> 64 -> 32
                 # size : 2 -> 4 -> 8-> 16 -> 32
-                x = deconv(x, channels=ch, kernel=5, stride=2, scope='deconv_'+str(i))
+                x = deconv(x, channels=ch//2, kernel=5, stride=2, scope='deconv_'+str(i))
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
                 x = relu(x)
                 ch = ch // 2
 
-            x = deconv(x, channels=self.c_dim, kernel=5, stride=2, scope='G_logit')
+            x = deconv(x, channels=self.c_dim, kernel=5, stride=2, scope='generated_image')
             # [bs, 64, 64, c_dim]
             x = tanh(x)
 
@@ -89,10 +100,13 @@ class GAN(object):
     def build_model(self):
 
         """ Graph Input """
+
         # images
+
         self.inputs = tf.placeholder(tf.float32, [self.batch_size, self.img_size, self.img_size, self.c_dim], name='real_images')
 
         # noises
+
         self.z = tf.placeholder(tf.float32, [self.batch_size, self.z_dim], name='z')
 
         """ Loss Function """
@@ -163,7 +177,7 @@ class GAN(object):
             # get batch data
             for idx in range(start_batch_id, self.num_batches):
                 batch_images = self.data_X[idx*self.batch_size : (idx+1)*self.batch_size]
-                batch_z = np.random.uniform(-1, 1, [self.batch_size, self.z_dim]).astype(np.float32)
+                batch_z = np.random.uniform(-1, 1, [self.batch_size, self.z_dim])
 
                 train_feed_dict = {
                     self.inputs : batch_images,
