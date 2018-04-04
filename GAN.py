@@ -55,10 +55,10 @@ class GAN(object):
             x = conv(x, channels=ch, kernel=5, stride=2, pad=2, scope='conv_0')
             x = lrelu(x)
 
-            for i in range(1, 5):
+            for i in range(1, 4):
 
-                # ch : 128 -> 256 -> 512 -> 1024
-                # size : 16 -> 8 -> 4 -> 2
+                # ch : 128 -> 256 -> 512
+                # size : 16 -> 8 -> 4
 
                 x = conv(x, channels=ch*2, kernel=5, stride=2, pad=2, scope='conv_'+str(i))
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
@@ -77,13 +77,13 @@ class GAN(object):
         with tf.variable_scope("generator", reuse=reuse):
             ch = 1024
 
-            x = fully_conneted(z, ch)
+            x = fully_conneted(z, 4 * 4 * ch)
             x = relu(x)
-            x = tf.reshape(x, [-1, 1, 1, ch])
+            x = tf.reshape(x, [-1, 4, 4, ch])
 
-            for i in range(5):
-                # ch : 512 -> 256 -> 128 -> 64 -> 32
-                # size : 2 -> 4 -> 8-> 16 -> 32
+            for i in range(3):
+                # ch : 512 -> 256 -> 128
+                # size : 8 -> 16 -> 32
                 x = deconv(x, channels=ch//2, kernel=5, stride=2, scope='deconv_'+str(i))
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
                 x = relu(x)
