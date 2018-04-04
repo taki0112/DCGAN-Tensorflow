@@ -25,7 +25,7 @@ class GAN(object):
         self.sample_num = args.sample_num  # number of generated images to be saved
         self.test_num = args.test_num
 
-        self.img_size = 64
+        self.img_size = args.img_size
 
         # train
         self.learning_rate = 0.0002
@@ -34,15 +34,15 @@ class GAN(object):
 
         if self.dataset == 'mnist' :
             self.c_dim = 1
-            self.data_X = load_mnist()
+            self.data_X = load_mnist(size=self.img_size)
 
         elif self.dataset == 'ciar10' :
             self.c_dim = 3
-            self.data_X = load_cifar10()
+            self.data_X = load_cifar10(size=self.img_size)
 
         else :
             self.c_dim = 3
-            self.data_X = load_data(self.dataset)
+            self.data_X = load_data(dataset_name=self.dataset, size=self.img_size)
 
 
         # get number of batches for a single epoch
@@ -50,23 +50,23 @@ class GAN(object):
 
     def discriminator(self, x, is_training=True, reuse=False):
         with tf.variable_scope("discriminator", reuse=reuse):
-            ch = 64
+            ch = 32
 
-            x = conv(x, channels=ch, kernel=5, stride=2, pad=2, scope='conv_0')
-            x = lrelu(x)
+            # x = conv(x, channels=ch, kernel=5, stride=2, pad=2, scope='conv_0')
+            # x = lrelu(x)
 
-            for i in range(1, 4):
+            for i in range(4):
 
-                # ch : 128 -> 256 -> 512
-                # size : 16 -> 8 -> 4
+                # ch : 64 -> 128 -> 256 -> 512
+                # size : 32 -> 16 -> 8 -> 4
 
-                x = conv(x, channels=ch*2, kernel=5, stride=2, pad=2, scope='conv_'+str(i))
+                x = conv(x, channels=ch*2, kernel=5, stride=2, pad=2, scope='conv_'+str(i+1))
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
                 x = lrelu(x)
 
                 ch = ch * 2
 
-            # [bs, 2, 2, 1024]
+            # [bs, 4, 4, 1024]
 
             x = flatten(x)
             x = fully_conneted(x, 1)
@@ -82,9 +82,11 @@ class GAN(object):
             x = tf.reshape(x, [-1, 4, 4, ch])
 
             for i in range(3):
+
                 # ch : 512 -> 256 -> 128
                 # size : 8 -> 16 -> 32
-                x = deconv(x, channels=ch//2, kernel=5, stride=2, scope='deconv_'+str(i))
+
+                x = deconv(x, channels=ch//2, kernel=5, stride=2, scope='deconv_'+str(i+1))
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
                 x = relu(x)
                 ch = ch // 2
