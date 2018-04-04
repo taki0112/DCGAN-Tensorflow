@@ -18,7 +18,7 @@ class GAN(object):
         self.log_dir = args.log_dir
 
         self.epoch = args.epoch
-        self.batch_size = args.batch_siz
+        self.batch_size = args.batch_size
         self.print_freq = args.print_freq
         self.z_dim = args.z_dim  # dimension of noise-vector
 
@@ -50,8 +50,8 @@ class GAN(object):
 
     def discriminator(self, x, is_training=True, reuse=False):
         with tf.variable_scope("discriminator", reuse=reuse):
-
             ch = 64
+
             x = conv(x, channels=ch, kernel=5, stride=2, pad=2, scope='conv_0')
             x = lrelu(x)
 
@@ -61,9 +61,7 @@ class GAN(object):
                 # size : 16 -> 8 -> 4 -> 2
 
                 x = conv(x, channels=ch*2, kernel=5, stride=2, pad=2, scope='conv_'+str(i))
-
                 x = batch_norm(x, is_training, scope='batch_'+str(i))
-
                 x = lrelu(x)
 
                 ch = ch * 2
@@ -78,12 +76,12 @@ class GAN(object):
     def generator(self, z, is_training=True, reuse=False):
         with tf.variable_scope("generator", reuse=reuse):
             ch = 1024
-            x = fully_conneted(z, ch)
 
+            x = fully_conneted(z, ch)
             x = relu(x)
             x = tf.reshape(x, [-1, 1, 1, ch])
 
-            for i in range(4):
+            for i in range(5):
                 # ch : 512 -> 256 -> 128 -> 64 -> 32
                 # size : 2 -> 4 -> 8-> 16 -> 32
                 x = deconv(x, channels=ch//2, kernel=5, stride=2, scope='deconv_'+str(i))
@@ -93,6 +91,7 @@ class GAN(object):
 
             x = deconv(x, channels=self.c_dim, kernel=5, stride=2, scope='generated_image')
             # [bs, 64, 64, c_dim]
+
             x = tanh(x)
 
             return x
