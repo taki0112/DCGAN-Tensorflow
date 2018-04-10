@@ -14,6 +14,14 @@ SImple Tensorflow implementation of "Deep Convolutional Generative Adversarial N
 > python main.py --dataset celebA
 ```
 
+```bash
+├── data
+   └── YOUR_DATASET_NAME
+         ├── xxx.jpg (name, format doesn't matter)
+         ├── yyy.png
+         └── ...
+```
+
 ## Results (epoch = 20, lr = 0.0002, batch_size = 64, z_dim = 100)
 ### mnist
 ![mnist](./assests/mnist.png)
